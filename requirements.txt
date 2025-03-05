@@ -1,0 +1,17 @@
+fastapi
+pandas
+uvicorn
+python-multipart
+jinja2
+seaborn
+psycopg2-binary
+fuzzywuzzy
+scikit-learn
+requests
+python-dotenv
+sqlalchemy
+requests-cache
+openmeteo-requests
+retry-requests
+statsmodels
+ipykernel
