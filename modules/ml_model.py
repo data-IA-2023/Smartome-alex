@@ -52,7 +52,7 @@ class HybridModel:
     def score(self,X,y):
         return mean_squared_error(y, self.predict(X))
 
-def train_temp_prediction_model(X,y,span,model_type='rand_forest'):
+def train_temp_prediction_model(X,y,span,model_type='grad_boost'):
     X_smoothed = causal_filter(X,span=span)
     df_X_final=pd.concat([X_smoothed,X],axis=1)
     #df_X_final=X_smoothed
@@ -60,12 +60,12 @@ def train_temp_prediction_model(X,y,span,model_type='rand_forest'):
     # print(X_train)
     combiner = GeoMeanCombiner()
     est1 = RandomForestRegressor(n_estimators=50, max_depth=10, random_state=0)
-    est2 = GradientBoostingRegressor(n_estimators=50, learning_rate=0.11, max_depth=2, random_state=0, loss='squared_error')
+    est2 = GradientBoostingRegressor(n_estimators=50, learning_rate=0.11, max_depth=9, random_state=0, loss='squared_error')
     est3 = MLPRegressor(random_state=0, max_iter=10000, tol=0.0001, hidden_layer_sizes=(150, 75))
     est4 = KernelRidge(alpha=1.0)
     est5 = SVR(C=1.0, epsilon=0.2)
     est6 = LinearRegression()
-    model_dict={'rand_forest':est1,'grad_boost':est2,'mlp':est3,'kernel':est4,'svr':est5}
+    model_dict={'rand_forest':est1,'grad_boost':est2,'mlp':est3,'kernel':est4,'svr':est5,'lin':est6}
     est=model_dict[model_type]
     #est=svm.SVR()
     #est=Ridge(solver = 'lsqr', alpha=1.5, tol=0.0001, random_state = 0)

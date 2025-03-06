@@ -20,7 +20,7 @@ if __name__=='__main__':
     #sns.lineplot(df_X['temp_target'])
     span=50
 
-    est=train_temp_prediction_model(df_X,df_y,span=span)
+    est=train_temp_prediction_model(df_X,df_y,span=span,model_type='grad_boost')
     #est2=train_temp_prediction_model(df_X,df_y,span=span,model_type='rand_forest')
     #y_pred=predict_temp(est,df_X,span)
     #df_y_pred=pd.Series(y_pred,index=df_y.index)
