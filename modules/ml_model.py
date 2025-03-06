@@ -14,52 +14,19 @@ from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import SGDRegressor
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import make_pipeline
+from scipy.signal import medfilt
 
 import numpy as np
 import pandas as pd
 
 
-class GeoMeanCombiner:
-    def __init__(self):
-        pass
-    def fit(self,X,y):
-        pass
-    def predict(self,X):
-        return np.exp(np.mean(np.log(X),axis=1))
-    def score(self,X,y):
-        return mean_squared_error(y, self.predict(X))
-
-
-class HybridModel:
-    def __init__(self,est_list,combiner):
-        self.est_list=est_list
-        self.combiner=combiner
-    def fit(self,X,y):
-        A=[]
-        for est in self.est_list:
-            est.fit(X,y)
-            y_pred=est.predict(X)
-            A.append(y_pred)
-        A=np.transpose(np.array(A))
-        self.combiner.fit(A,y)
-    def predict(self,X):
-        A=[]
-        for est in self.est_list:
-            y_pred=est.predict(X)
-            A.append(y_pred)
-        A=np.transpose(np.array(A))
-        return self.combiner.predict(A)
-    def score(self,X,y):
-        return mean_squared_error(y, self.predict(X))
-
-def train_temp_prediction_model(X,y,span,model_type='grad_boost'):
+def train_temp_prediction_model(X,y,span,model_type='rand_forest'):
     X_smoothed = causal_filter(X,span=span)
     df_X_final=pd.concat([X_smoothed,X],axis=1)
     #df_X_final=X_smoothed
     X_train, X_test, y_train, y_test = train_test_split(df_X_final, y, test_size=0.2, random_state=0)
     # print(X_train)
-    combiner = GeoMeanCombiner()
-    est1 = RandomForestRegressor(n_estimators=50, max_depth=10, random_state=0)
+    est1 = RandomForestRegressor(n_estimators=100, max_depth=24, random_state=0)
     est2 = GradientBoostingRegressor(n_estimators=50, learning_rate=0.11, max_depth=9, random_state=0, loss='squared_error')
     est3 = MLPRegressor(random_state=0, max_iter=10000, tol=0.0001, hidden_layer_sizes=(150, 75))
     est4 = KernelRidge(alpha=1.0)
@@ -75,7 +42,7 @@ def train_temp_prediction_model(X,y,span,model_type='grad_boost'):
     mse = mean_squared_error(y_test, est.predict(X_test))
     mse_train = mean_squared_error(y_train, est.predict(X_train))
     print(f"The mean squared error (MSE) on test set: {mse:.4f} (MSE < 1 is good)")
-    print(f"The overfitting ratio is : {mse/mse_train:.4f} (trying not make too high)")
+    print(f"The overfitting ratio is : {mse/mse_train:.4f} (trying not make it too high)")
     est.fit(df_X_final,y)
     return est
 
