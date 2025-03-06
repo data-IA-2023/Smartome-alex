@@ -40,8 +40,6 @@ class HybridModel:
             est.fit(X,y)
             y_pred=est.predict(X)
             A.append(y_pred)
-        # for e in np.transpose(np.array(X)):
-        #     A.append(e)
         A=np.transpose(np.array(A))
         self.combiner.fit(A,y)
     def predict(self,X):
@@ -49,8 +47,6 @@ class HybridModel:
         for est in self.est_list:
             y_pred=est.predict(X)
             A.append(y_pred)
-        # for e in np.transpose(np.array(X)):
-        #     A.append(e)
         A=np.transpose(np.array(A))
         return self.combiner.predict(A)
     def score(self,X,y):
@@ -70,8 +66,7 @@ def train_temp_prediction_model(X,y,span,model_type='rand_forest'):
     est5 = SVR(C=1.0, epsilon=0.2)
     est6 = LinearRegression()
     model_dict={'rand_forest':est1,'grad_boost':est2,'mlp':est3,'kernel':est4,'svr':est5}
-    #est=model_dict[model_type]
-    est=HybridModel([est1,est6],combiner)
+    est=model_dict[model_type]
     #est=svm.SVR()
     #est=Ridge(solver = 'lsqr', alpha=1.5, tol=0.0001, random_state = 0)
     #est=ElasticNet(alpha = 0.1)
@@ -92,29 +87,19 @@ def causal_filter(x,span,amplitude_gain=1):
     new_names=[str(e) + '_smoothed' for e in old_names]
     return df_temp.rename(columns=dict(zip(old_names, new_names)))
 
-# class Binarize:
-#     def __init__(self,a_min,a_max,est=None):
-#         self.a_min,self.a_max=a_min,a_max
-#         self.est=est
-#     def fit(self,*args):
-#         self.est.fit(args)
-#     def transform(self,x):
-#         return np.around((np.clip(x, a_min = self.a_min, a_max = self.a_max)-self.a_min)/(self.a_max-self.a_min))*(self.a_max-self.a_min)+self.a_min
-#     def fit_transform(self,x):
-#         return self.transform(x)
-#     def predict(self,x):
-#         return self.transform(est.predict(x))
 
 def predict_temp(model,X,span):
+
     X_smoothed = causal_filter(X,span=span)
     df_X_final=pd.concat([X_smoothed,X],axis=1)
-    #df_X_final=X_smoothed
+
     y_pred=model.predict(df_X_final)
     df_y_pred=pd.DataFrame(y_pred,index=X.index)
-    #df_y_pred=causal_filter(df_y_pred,span=1,amplitude_gain=post_gain)
+
     return df_y_pred
 
-def predict_heat_time(model,X,date_s,start_target_temp,target_temp,span):
+def predict_heat_time(model,X,date_s,start_target_temp,target_temp,span,tol):
+
     X.reset_index(inplace=True)
     X.loc[X['date'] >= date_s, 'temp_target'] = target_temp
     X.loc[pd.isna(X['temp_target']),'temp_target'] = start_target_temp
@@ -122,7 +107,6 @@ def predict_heat_time(model,X,date_s,start_target_temp,target_temp,span):
 
     X_smoothed = causal_filter(X,span=span)
     df_X_final=pd.concat([X_smoothed,X],axis=1)
-    #df_X_final=X_smoothed
 
     y_pred=model.predict(df_X_final)
 
@@ -132,10 +116,7 @@ def predict_heat_time(model,X,date_s,start_target_temp,target_temp,span):
     df_y_pred['date'] = pd.to_datetime(df_y_pred['date'])
 
 
-    #mask = (df_y_pred['date'] >= date)
-    #print(df_y_pred['date'])
-
-    filtered_df=df_y_pred[(df_y_pred[0]>=target_temp-4) & (df_y_pred['date']>=date_s)]
+    filtered_df=df_y_pred[(np.abs(df_y_pred[0]-target_temp)<=tol) & (df_y_pred['date']>=date_s)]
     filtered_df.set_index(['date'], inplace=True)
     print(filtered_df.index.min()-pd.to_datetime(date_s))
     df_y_pred.set_index(['date'], inplace=True)

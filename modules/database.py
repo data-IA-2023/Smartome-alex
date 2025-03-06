@@ -90,13 +90,15 @@ def create_prediction_set(file_path,building_id,start_date,end_date):
     #print(df_wea)
     df_mea['date'] = pd.to_datetime(df_mea['date'])
     df_wea['date'] = pd.to_datetime(df_wea['date'])
-    df_wea2['date'] = pd.to_datetime(df_wea['date'])
+    df_wea2['date'] = pd.to_datetime(df_wea2['date'])
 
     df_mea.set_index(['date'], inplace=True)
     df_wea.set_index(['date'], inplace=True)
     df_wea2.set_index(['date'], inplace=True)
 
-    df_wea=df_wea.combine_first(df_wea2)
+    #print(df_wea)
+    #print(df_wea2)
+    df_wea=df_wea2.combine_first(df_wea)
 
     con.close()
 
