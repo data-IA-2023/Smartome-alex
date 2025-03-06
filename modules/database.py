@@ -1,6 +1,7 @@
 import sqlite3
 import pandas as pd
 import numpy as np
+import openmeteo_api as om
 
 def create_db(file_path):
     con = sqlite3.connect(file_path)
@@ -74,7 +75,6 @@ def create_temp_training_set(file_path,building_id,start_date,end_date):
     return training_df,df['temp_int']
     
 def create_prediction_set(file_path,building_id,start_date,end_date):
-    import openmeteo_api as om
 
     con = sqlite3.connect(file_path)
     df_buil=pd.read_sql_query("SELECT * FROM buildings", con)

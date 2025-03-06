@@ -117,7 +117,7 @@ def predict_temp(model,X,span):
 def predict_heat_time(model,X,date_s,start_target_temp,target_temp,span):
     X.reset_index(inplace=True)
     X.loc[X['date'] >= date_s, 'temp_target'] = target_temp
-    X.loc[X['date'] < date_s, 'temp_target'] = start_target_temp
+    X.loc[pd.isna(X['temp_target']),'temp_target'] = start_target_temp
     X.set_index(['date'], inplace=True)
 
     X_smoothed = causal_filter(X,span=span)
@@ -135,7 +135,8 @@ def predict_heat_time(model,X,date_s,start_target_temp,target_temp,span):
     #mask = (df_y_pred['date'] >= date)
     #print(df_y_pred['date'])
 
-    filtered_df=df_y_pred[(df_y_pred[0]>=target_temp-1) & (df_y_pred['date']>=date_s)]
+    filtered_df=df_y_pred[(df_y_pred[0]>=target_temp-4) & (df_y_pred['date']>=date_s)]
     filtered_df.set_index(['date'], inplace=True)
+    print(filtered_df.index.min()-pd.to_datetime(date_s))
     df_y_pred.set_index(['date'], inplace=True)
     return df_y_pred
