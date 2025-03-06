@@ -69,7 +69,7 @@ def create_temp_training_set(file_path,building_id,start_date,end_date):
     #training_df=df['temp_int'].shift(nb_hours)[nb_hours:]
     #training_df=df['temp_target'].shift(nb_hours)[nb_hours:]
     #training_df=pd.concat([df[nb_hours:].drop(columns=['temp_int']),training_df],axis=1)
-    training_df=df[['temp_target','temperature_2m','cloud_cover']] # only useful features, other features would create some kind of positional encoding wich would lead to overfitting
+    training_df=df[['temp_target','temperature_2m']] # only useful features, other features would create some kind of positional encoding wich would lead to overfitting
     
     return training_df,df['temp_int']
     
@@ -81,7 +81,6 @@ def create_prediction_set(file_path,building_id,start_date,end_date):
     city=df_buil[df_buil['id_buil'] == building_id]['city'].loc[0]
 
     coords=om.get_coords(city)
-    print(coords)
     df_wea=om.get_weather_forecast_data(coords['latitude'],coords['longitude'],start_date,end_date)
 
 
@@ -115,7 +114,7 @@ def create_prediction_set(file_path,building_id,start_date,end_date):
     df_wea = df_wea.drop('city', axis=1)
     df = join_and_interpolate_df(df_mea,df_wea)
 
-    final_df=df[['temp_target','temperature_2m','cloud_cover']]
+    final_df=df[['temp_target','temperature_2m']]#'temperature_2m','cloud_cover'
     return final_df
 
 if __name__=='__main__':
