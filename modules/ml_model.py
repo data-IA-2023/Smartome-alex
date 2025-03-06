@@ -59,7 +59,7 @@ def train_temp_prediction_model(X,y,span,model_type='rand_forest'):
     X_train, X_test, y_train, y_test = train_test_split(df_X_final, y, test_size=0.2, random_state=0)
     # print(X_train)
     combiner = GeoMeanCombiner()
-    est1 = RandomForestRegressor(n_estimators=50, max_depth=32, random_state=0)
+    est1 = RandomForestRegressor(n_estimators=50, max_depth=10, random_state=0)
     est2 = GradientBoostingRegressor(n_estimators=50, learning_rate=0.11, max_depth=2, random_state=0, loss='squared_error')
     est3 = MLPRegressor(random_state=0, max_iter=10000, tol=0.0001, hidden_layer_sizes=(150, 75))
     est4 = KernelRidge(alpha=1.0)
@@ -74,8 +74,8 @@ def train_temp_prediction_model(X,y,span,model_type='rand_forest'):
     est.fit(X_train, y_train)
     mse = mean_squared_error(y_test, est.predict(X_test))
     mse_train = mean_squared_error(y_train, est.predict(X_train))
-    print(f"The mean squared error (MSE) on test set: {mse:.4f}")
-    print(f"The overfitting ratio is : {mse/mse_train:.4f}")
+    print(f"The mean squared error (MSE) on test set: {mse:.4f} (MSE < 1 is good)")
+    print(f"The overfitting ratio is : {mse/mse_train:.4f} (trying not make too high)")
     est.fit(df_X_final,y)
     return est
 

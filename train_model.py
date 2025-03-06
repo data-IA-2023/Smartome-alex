@@ -18,7 +18,7 @@ if __name__=='__main__':
 
 
     #sns.lineplot(df_X['temp_target'])
-    span=70
+    span=50
 
     est=train_temp_prediction_model(df_X,df_y,span=span)
     #est2=train_temp_prediction_model(df_X,df_y,span=span,model_type='rand_forest')
@@ -47,7 +47,7 @@ if __name__=='__main__':
     # X_fc.loc[X_fc['date']>="2025-03-01",'temp_target']=7
     df_y_pred=predict_temp(est,df_X,span)
     sns.lineplot(df_y_pred)
-    y_fc=predict_heat_time(est,X_fc,"2024-04-06",start_target_temp=7,target_temp=22,span=span,tol=3)
+    y_fc=predict_heat_time(est,X_fc,"2024-04-06",start_target_temp=7,target_temp=22,span=span,tol=2)
 
     sns.lineplot(X_fc['temp_target'])
     #sns.lineplot(X_fc['temperature_2m'])
