@@ -4,7 +4,7 @@ from sklearn import linear_model
 from sklearn import svm
 from sklearn.svm import SVR
 from sklearn.linear_model import ElasticNet
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.neural_network import MLPRegressor
@@ -19,13 +19,28 @@ from scipy.signal import medfilt
 import numpy as np
 import pandas as pd
 
+class CombineModels:
+    def __init__(self,model_list):
+        self.model_list=model_list
+    def fit(self,X,y):
+        for e in self.model_list:
+            e.fit(X,y)
+    def predict(self,X):
+        A=[]
+        for e in self.model_list:
+            A.append(e.predict(X))
+        A=np.transpose(np.array(A))
+        return np.mean(A,axis=1)
+    def score(self,X,y):
+        return mean_squared_error(y,self.predict(X))
 
 def train_temp_prediction_model(X,y,span=80,model_type='rand_forest',k=10,med_coef=9):
     df_X_final=preprocess_data(X,span,k)
     #df_X_final=X_smoothed
     yf=medfilt(y, med_coef)
-    X_train, X_test, y_train, y_test = train_test_split(df_X_final, yf, test_size=0.2, random_state=0)
-    #X_train, X_test, y_train, y_test = df_X_final[:-600],df_X_final[-600:],y[:-600],y[-600:]
+    #X_train, X_test, y_train, y_test = train_test_split(df_X_final, yf, test_size=0.2, random_state=0)
+    test_size=int(df_X_final.shape[0]*0.05)
+    X_train, X_test, y_train, y_test = df_X_final[:-test_size],df_X_final[-test_size:],yf[:-test_size],yf[-test_size:]
     # print(X_train)
     est1 = RandomForestRegressor(n_estimators=100, max_depth=32, random_state=0)
     est2 = GradientBoostingRegressor(n_estimators=200, learning_rate=0.11, max_depth=8, random_state=0, loss='squared_error')
@@ -36,12 +51,16 @@ def train_temp_prediction_model(X,y,span=80,model_type='rand_forest',k=10,med_co
     model_dict={'rand_forest':est1,'grad_boost':est2,'mlp':est3,'kernel':est4,'svr':est5,'lin':est6}
     est=model_dict[model_type]
 
-    est2.fit(X,y)
+    #est2.fit(X,y)
     est.fit(X_train, y_train)
-    X_train, X_test, y_train, y_test = train_test_split(df_X_final, y, test_size=0.2, random_state=0) #non filtered y score
+    #X_train, X_test, y_train, y_test = train_test_split(df_X_final, y, test_size=0.2, random_state=0) #non filtered y score
+    X_train, X_test, y_train, y_test = df_X_final[:-300],df_X_final[-300:],y[:-300],y[-300:]
     mse = mean_squared_error(y_test, est.predict(X_test))
     mse_train = mean_squared_error(y_train, est.predict(X_train))
-    print(f"The mean squared error (MSE) on test set: {mse:.4f} (MSE < 0.5 is good)")
+    r2 = r2_score(y_test, est.predict(X_test))
+    print(f"The mean squared error (MSE) on test set is : {mse:.4f}")
+    print(f"The root mean squared error (MSE) on test set is : {np.sqrt(mse):.4f}")
+    print(f"The r2 score) on test set is : {r2:.4f}")
     print(f"The overfitting ratio is : {mse/mse_train:.4f} (trying not make it too high)")
     est.fit(df_X_final,yf)
     return est
@@ -58,6 +77,7 @@ def preprocess_data(X,span=80,k=10):
     L=[X]
     for i in range(k):
         L.append(causal_filter(L[-1],span=span))
+    #L.pop(0)
     return pd.concat(L,axis=1)
 
 

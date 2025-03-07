@@ -16,3 +16,4 @@ retry-requests
 statsmodels
 ipykernel
 scipy
+mlflow
