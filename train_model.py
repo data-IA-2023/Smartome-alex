@@ -18,7 +18,7 @@ import os
 db_path='./data/database.sqlite'
 span=100
 k=5
-med_coef=19 #19 for linear and 9 for tree based
+med_coef=9 #19 for linear and 9 for tree based
 id_buil='roland_04'
 tol=2
 start_date="2024-01-01"
