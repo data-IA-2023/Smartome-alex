@@ -20,30 +20,30 @@ import numpy as np
 import pandas as pd
 
 
-def train_temp_prediction_model(X,y,span,model_type='rand_forest'):
-    X_smoothed = causal_filter(X,span=span)
-    df_X_final=pd.concat([X_smoothed,X],axis=1)
+def train_temp_prediction_model(X,y,span=80,model_type='rand_forest',k=10,med_coef=9):
+    df_X_final=preprocess_data(X,span,k)
     #df_X_final=X_smoothed
-    X_train, X_test, y_train, y_test = train_test_split(df_X_final, y, test_size=0.2, random_state=0)
+    yf=medfilt(y, med_coef)
+    X_train, X_test, y_train, y_test = train_test_split(df_X_final, yf, test_size=0.2, random_state=0)
+    #X_train, X_test, y_train, y_test = df_X_final[:-600],df_X_final[-600:],y[:-600],y[-600:]
     # print(X_train)
-    est1 = RandomForestRegressor(n_estimators=100, max_depth=24, random_state=0)
-    est2 = GradientBoostingRegressor(n_estimators=50, learning_rate=0.11, max_depth=9, random_state=0, loss='squared_error')
+    est1 = RandomForestRegressor(n_estimators=100, max_depth=32, random_state=0)
+    est2 = GradientBoostingRegressor(n_estimators=200, learning_rate=0.11, max_depth=8, random_state=0, loss='squared_error')
     est3 = MLPRegressor(random_state=0, max_iter=10000, tol=0.0001, hidden_layer_sizes=(150, 75))
     est4 = KernelRidge(alpha=1.0)
     est5 = SVR(C=1.0, epsilon=0.2)
     est6 = LinearRegression()
     model_dict={'rand_forest':est1,'grad_boost':est2,'mlp':est3,'kernel':est4,'svr':est5,'lin':est6}
     est=model_dict[model_type]
-    #est=svm.SVR()
-    #est=Ridge(solver = 'lsqr', alpha=1.5, tol=0.0001, random_state = 0)
-    #est=ElasticNet(alpha = 0.1)
-    #est = linear_model.Lasso(alpha=0.1)
+
+    est2.fit(X,y)
     est.fit(X_train, y_train)
+    X_train, X_test, y_train, y_test = train_test_split(df_X_final, y, test_size=0.2, random_state=0) #non filtered score
     mse = mean_squared_error(y_test, est.predict(X_test))
     mse_train = mean_squared_error(y_train, est.predict(X_train))
-    print(f"The mean squared error (MSE) on test set: {mse:.4f} (MSE < 1 is good)")
+    print(f"The mean squared error (MSE) on test set: {mse:.4f} (MSE < 0.5 is good)")
     print(f"The overfitting ratio is : {mse/mse_train:.4f} (trying not make it too high)")
-    est.fit(df_X_final,y)
+    est.fit(df_X_final,yf)
     return est
 
 def causal_filter(x,span,amplitude_gain=1):
@@ -54,30 +54,30 @@ def causal_filter(x,span,amplitude_gain=1):
     new_names=[str(e) + '_smoothed' for e in old_names]
     return df_temp.rename(columns=dict(zip(old_names, new_names)))
 
+def preprocess_data(X,span=80,k=10):
+    L=[X]
+    for i in range(k):
+        L.append(causal_filter(L[-1],span=span))
+    return pd.concat(L,axis=1)
 
-def predict_temp(model,X,span):
 
-    X_smoothed = causal_filter(X,span=span)
-    df_X_final=pd.concat([X_smoothed,X],axis=1)
+def predict_temp(model,X,span=80,k=10):
+
+    df_X_final=preprocess_data(X,span,k)
 
     y_pred=model.predict(df_X_final)
     df_y_pred=pd.DataFrame(y_pred,index=X.index)
 
     return df_y_pred
 
-def predict_heat_time(model,X,date_s,start_target_temp,target_temp,span,tol):
+def predict_heating_time(model,X,date_s,start_target_temp,target_temp,span=80,tol=2,k=10):
 
     X.reset_index(inplace=True)
     X.loc[X['date'] >= date_s, 'temp_target'] = target_temp
     X.loc[pd.isna(X['temp_target']),'temp_target'] = start_target_temp
     X.set_index(['date'], inplace=True)
 
-    X_smoothed = causal_filter(X,span=span)
-    df_X_final=pd.concat([X_smoothed,X],axis=1)
-
-    y_pred=model.predict(df_X_final)
-
-    df_y_pred=pd.DataFrame(y_pred,index=df_X_final.index)
+    df_y_pred=predict_temp(model,X,span,k)
 
     df_y_pred.reset_index(inplace=True)
     df_y_pred['date'] = pd.to_datetime(df_y_pred['date'])
@@ -85,6 +85,6 @@ def predict_heat_time(model,X,date_s,start_target_temp,target_temp,span,tol):
 
     filtered_df=df_y_pred[(np.abs(df_y_pred[0]-target_temp)<=tol) & (df_y_pred['date']>=date_s)]
     filtered_df.set_index(['date'], inplace=True)
-    print(filtered_df.index.min()-pd.to_datetime(date_s))
+    print(f'heating time at ± 5% : {filtered_df.index.min()-pd.to_datetime(date_s)}')
     df_y_pred.set_index(['date'], inplace=True)
     return df_y_pred

@@ -8,7 +8,7 @@ def create_db(file_path):
 
     cur = con.cursor()
     cur.execute("CREATE TABLE IF NOT EXISTS buildings(id_buil, DPE, surface, city)")
-    cur.execute("CREATE TABLE IF NOT EXISTS measurements(date,id_buil,temp_int, temp_target)")
+    cur.execute("CREATE TABLE IF NOT EXISTS measurements(date,id_buil,temp_int, temp_target, power)")
     cur.execute("CREATE TABLE IF NOT EXISTS weather(city, date, temperature_2m, relative_humidity_2m, precipitation, cloud_cover, wind_speed_10m)")
 
     con.close()
