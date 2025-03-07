@@ -39,7 +39,7 @@ def train_temp_prediction_model(X,y,span=80,model_type='rand_forest',k=10,med_co
     #df_X_final=X_smoothed
     yf=medfilt(y, med_coef)
     #X_train, X_test, y_train, y_test = train_test_split(df_X_final, yf, test_size=0.2, random_state=0)
-    test_size=int(df_X_final.shape[0]*0.05)
+    test_size=int(df_X_final.shape[0]*0.1)
     X_train, X_test, y_train, y_test = df_X_final[:-test_size],df_X_final[-test_size:],yf[:-test_size],yf[-test_size:]
     # print(X_train)
     est1 = RandomForestRegressor(n_estimators=100, max_depth=32, random_state=0)
