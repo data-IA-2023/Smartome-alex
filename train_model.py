@@ -109,6 +109,8 @@ def get_latest_model_from_mlflow(id_buil):
 
 
 if __name__=='__main__':
+    df_X,df_y=create_temp_training_set(db_path,id_buil,start_date,end_date)
+    sns.lineplot(df_y, color='red')
     # train_model(db_path,span,k,med_coef,id_buil,tol,start_date,end_date,model_type)
     est=get_latest_model_from_mlflow(id_buil)
     predict_heating_time_with_model(est,db_path,span,k,med_coef,id_buil,tol,start_date2,end_date2,heating_date,start_target_temp=7,target_temp=22)
