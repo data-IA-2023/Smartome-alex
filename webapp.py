@@ -59,6 +59,7 @@ class PredictHeatingTimes(BaseModel):
     heating_date : list[str]
     base_temp : list[float]
     target_temp : list[float]
+    tol : list[float]
 
 @app.get("/")
 async def root():
@@ -103,5 +104,5 @@ async def predict_heating_times(data: PredictHeatingTimes):
     L=[]
     for i in range(len(d['id_buil'])):
         est=get_latest_model_from_mlflow(id_buil)
-        L.append(predict_heating_time_with_model(est,db_path,span=span,k=k,med_coef=med_coef,id_buil=d['id_buil'][i],tol=tol,start_date=d['start_date'][i],end_date=d['end_date'][i],heating_date=d['heating_date'][i],start_target_temp=d['base_temp'][i],target_temp=d['target_temp'][i]))
+        L.append(predict_heating_time_with_model(est,db_path,span=span,k=k,med_coef=med_coef,id_buil=d['id_buil'][i],tol=d['tol'][i],start_date=d['start_date'][i],end_date=d['end_date'][i],heating_date=d['heating_date'][i],start_target_temp=d['base_temp'][i],target_temp=d['target_temp'][i]))
     return {'heating_times':L}
