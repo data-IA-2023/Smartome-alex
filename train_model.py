@@ -50,8 +50,8 @@ if __name__=='__main__':
     # X_fc.loc[X_fc['date']>="2025-03-01",'temp_target']=7
     df_y_pred=predict_temp(est,df_X,span,k)
     sns.lineplot(df_y_pred)
-    y_fc=predict_heating_time(est,X_fc,"2024-04-06",start_target_temp=7,target_temp=22,span=span,tol=2,k=k)
-
+    y_fc,h_time=predict_heating_time(est,X_fc,"2024-04-06",start_target_temp=7,target_temp=22,span=span,tol=2,k=k)
+    print(f'Heating time at ± 5% : {h_time}')
     sns.lineplot(X_fc['temp_target'])
     sns.lineplot(X_fc['temperature_2m'])
     sns.lineplot(y_fc)

@@ -38,7 +38,7 @@ def train_temp_prediction_model(X,y,span=80,model_type='rand_forest',k=10,med_co
 
     est2.fit(X,y)
     est.fit(X_train, y_train)
-    X_train, X_test, y_train, y_test = train_test_split(df_X_final, y, test_size=0.2, random_state=0) #non filtered score
+    X_train, X_test, y_train, y_test = train_test_split(df_X_final, y, test_size=0.2, random_state=0) #non filtered y score
     mse = mean_squared_error(y_test, est.predict(X_test))
     mse_train = mean_squared_error(y_train, est.predict(X_train))
     print(f"The mean squared error (MSE) on test set: {mse:.4f} (MSE < 0.5 is good)")
@@ -85,6 +85,5 @@ def predict_heating_time(model,X,date_s,start_target_temp,target_temp,span=80,to
 
     filtered_df=df_y_pred[(np.abs(df_y_pred[0]-target_temp)<=tol) & (df_y_pred['date']>=date_s)]
     filtered_df.set_index(['date'], inplace=True)
-    print(f'heating time at ± 5% : {filtered_df.index.min()-pd.to_datetime(date_s)}')
     df_y_pred.set_index(['date'], inplace=True)
-    return df_y_pred
+    return df_y_pred,filtered_df.index.min()-pd.to_datetime(date_s)
