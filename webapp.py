@@ -20,7 +20,7 @@ import numpy as np
 app = FastAPI()
 #app.mount("/static", StaticFiles(directory="static"), name="static")
 db_path='./data/database.sqlite'
-span=5
+span=100
 k=5
 med_coef=9 #19 for linear and 9 for tree based
 #id_buil='roland_04'
