@@ -16,15 +16,15 @@ import os
 
 
 db_path='./data/database.sqlite'
-span=5
+span=100
 k=5
-med_coef=9 #19 for linear and 9 for tree based
+med_coef=19 #19 for linear and 9 for tree based
 id_buil='roland_04'
 tol=2
 start_date="2024-01-01"
 end_date="2024-04-05"
 model_type='rand_forest'
-start_date2="2024-02-05"
+start_date2="2024-03-05"
 end_date2="2024-04-09"
 heating_date="2024-04-06 8:00:00"
 
@@ -111,7 +111,8 @@ def get_latest_model_from_mlflow(id_buil):
 if __name__=='__main__':
     df_X,df_y=create_temp_training_set(db_path,id_buil,start_date,end_date)
     sns.lineplot(df_y, color='red')
-    # train_model(db_path,span,k,med_coef,id_buil,tol,start_date,end_date,model_type)
+    model_type='rand_forest'
+    train_model(db_path,span,k,med_coef,id_buil,tol,start_date,end_date,model_type)
     est=get_latest_model_from_mlflow(id_buil)
     predict_heating_time_with_model(est,db_path,span,k,med_coef,id_buil,tol,start_date2,end_date2,heating_date,start_target_temp=7,target_temp=22)
     plt.show()
